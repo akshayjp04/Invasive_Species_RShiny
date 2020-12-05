@@ -1,0 +1,12 @@
+name: rshinyapp
+title:
+username:
+account: treeofheavendashboard
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 3326795
+bundleId: 3940638
+url: https://treeofheavendashboard.shinyapps.io/rshinyapp/
+when: 1607040529.94115
+asMultiple: FALSE
+asStatic: FALSE
