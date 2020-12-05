@@ -163,7 +163,7 @@ tabItemsUI <- tabItems(
           fluidRow(width="50%", align="center", div(style = "height:16px; font-size:20px; width:1000px;font-family:Crimson Text",
                                                     "Our Computational Modeling and Data Analytics Capstone Project (CMDA at Virginia Tech) was sponsored by the Center
                                                     for Biostatistics and Health Data Science (CBHDS). Team ACE was tasked with developing a
-                                                    model and application to help researchers/engineers plan for an invasive species similar to the Tree of Heaven.")),
+                                                    model and application to help researchers/engineers plan for an invasive species similar to the Tree of Heaven. View the github repository for this application ", a("here.", href = "https://github.com/akshayjp04/Invasive_Species_RShiny"))),
           fluidRow(width="50%", align="center", div(style = "height:16px; font-size:20px;",
                                                     " ")),
           fluidRow(width="50%", align="center", div(style = "height:16px; font-size:20px;",
