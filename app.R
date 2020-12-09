@@ -135,7 +135,7 @@ logo_onenote <- function(boldText = "Shiny", mainText = "App", badgeText = "v1.1
   logo <- dashboardthemes::shinyDashboardLogoDIY(
     boldText = boldText,
     mainText = mainText,
-    textSize = 16,
+    textSize = 18,
     badgeText = badgeText,
     badgeTextColor = "purple",
     badgeTextSize = 2,
@@ -299,7 +299,7 @@ ui <- dashboardPage(title = "Tree of Heaven App",
                       # Menu items
                       sidebarMenu(
                         id = "tabs",
-                        style="max-height: 95vh; overflow-y:auto",
+                        style="max-height: 95vh; overflow-y:auto; font-size:18px",
                         menuItem(
                           "USA Map",
                           tabName = "worldMap",
@@ -331,7 +331,7 @@ ui <- dashboardPage(title = "Tree of Heaven App",
                           tabName = "references",
                           icon = icon("info-circle")
                         ),
-                        downloadButton("downloadData", label = "Download Data"),
+                        downloadButton("downloadData", label = "Download Data (.csv)"),
                         actionButton("Rerender", "Rerender Views (~15 secs)", icon("redo")),
                         # Slider inputs where the user can tweak the model
                         sliderInput("Annual Mean Temp", "Change in Annual Mean Temp (\u00B0C)",
@@ -399,7 +399,9 @@ ui <- dashboardPage(title = "Tree of Heaven App",
                       
                       tags$head(tags$style(HTML(".box {margin-bottom: 0;}"))),
                       tags$head(tags$style(HTML("#downloadData {width: 100%; text-align: left; margin-left: 3px;}"))),
-                      
+                      tags$head( 
+                        tags$style(HTML(".main-sidebar { font-size: 18px; }")),
+                      ),
                       tabItemsUI,
                       custom,
                       use_googlefont("Crimson Text")
@@ -411,7 +413,7 @@ server <- function(input, output, session) {
   
   # Colors for color bar in heatmap legend
   palTemp <- brewer.pal(9, "YlOrRd")
-  pal_rev <- colorNumeric(palTemp, plotList$dfMerged$predictionProb, reverse = T)
+  pal_rev <- colorNumeric(palTemp, plotList$dfMerged$predictionProb*100, reverse = T)
   
   # Heatmap for country
   output$map <- renderLeaflet({
@@ -423,8 +425,8 @@ server <- function(input, output, session) {
               zoom = 5) %>%
       addHeatmap(plotList$dfMerged$Longitude, plotList$dfMerged$Latitude, intensity=plotList$dfMerged$predictionProb,
                  max=32, radius=12, blur=0, gradient = palTemp) %>%
-      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                title = "Probability of Occurence", position = "bottomleft",
+      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                title = "Probability of Occurence %", position = "bottomleft",
                 labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE))) %>%
       addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                   highlight = highlightOptions(
@@ -509,7 +511,7 @@ server <- function(input, output, session) {
         addMarkers(lng=longIn, lat=latIn,
                    label = paste0(round(latIn,5),", ",round(longIn,5)))
       pred_result = round(as.numeric(pred_result), 3)
-      output$probText <- renderText({paste("Probabililty of occurrence: ", pred_result)})
+      output$probText <- renderText({paste("Probability of occurrence: ", pred_result*100, "%")})
       rm(bioDat)
       rm(bioDF)
       rm(dfPred)
@@ -536,8 +538,8 @@ server <- function(input, output, session) {
                 zoom = 5) %>%
         addHeatmap(plotList$dfMerged$Longitude, plotList$dfMerged$Latitude, intensity=plotList$dfMerged$predictionProb,
                    max=32, radius=12, blur=0, gradient = palTemp) %>%
-        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                  title = "Probability of Occurence", position = "bottomleft",
+        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                  title = "Probability of Occurence %", position = "bottomleft",
                   labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE))) %>%
         addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                     highlight = highlightOptions(
@@ -571,8 +573,8 @@ server <- function(input, output, session) {
                    dfAlabama$Latitude,
                    intensity = dfAlabama$predictionProb,
                    max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                  title = "Probability of Occurence", position = "bottomleft",
+        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                  title = "Probability of Occurence %", position = "bottomleft",
                   labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
         addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                     highlight = highlightOptions(
@@ -595,8 +597,8 @@ server <- function(input, output, session) {
                    dfArkansas$Latitude,
                    intensity = dfArkansas$predictionProb,
                    max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                  title = "Probability of Occurence", position = "bottomleft",
+        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                  title = "Probability of Occurence %", position = "bottomleft",
                   labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
         addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                     highlight = highlightOptions(
@@ -619,8 +621,8 @@ server <- function(input, output, session) {
                    dfArizona$Latitude,
                    intensity = dfArizona$predictionProb,
                    max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                  title = "Probability of Occurence", position = "bottomleft",
+        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                  title = "Probability of Occurence %", position = "bottomleft",
                   labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
         addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                     highlight = highlightOptions(
@@ -643,8 +645,8 @@ server <- function(input, output, session) {
                    dfCalifornia$Latitude,
                    intensity = dfCalifornia$predictionProb,
                    max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                  title = "Probability of Occurence", position = "bottomleft",
+        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                  title = "Probability of Occurence %", position = "bottomleft",
                   labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
         addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                     highlight = highlightOptions(
@@ -667,8 +669,8 @@ server <- function(input, output, session) {
                    dfColorado$Latitude,
                    intensity = dfColorado$predictionProb,
                    max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                  title = "Probability of Occurence", position = "bottomleft",
+        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                  title = "Probability of Occurence %", position = "bottomleft",
                   labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
         addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                     highlight = highlightOptions(
@@ -691,8 +693,8 @@ server <- function(input, output, session) {
                    dfConnecticut$Latitude,
                    intensity = dfConnecticut$predictionProb,
                    max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                  title = "Probability of Occurence", position = "bottomleft",
+        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                  title = "Probability of Occurence %", position = "bottomleft",
                   labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
         addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                     highlight = highlightOptions(
@@ -715,8 +717,8 @@ server <- function(input, output, session) {
                    dfDelaware$Latitude,
                    intensity = dfDelaware$predictionProb,
                    max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                  title = "Probability of Occurence", position = "bottomleft",
+        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                  title = "Probability of Occurence %", position = "bottomleft",
                   labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
         addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                     highlight = highlightOptions(
@@ -739,8 +741,8 @@ server <- function(input, output, session) {
                    dfFlorida$Latitude,
                    intensity = dfFlorida$predictionProb,
                    max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                  title = "Probability of Occurence", position = "bottomleft",
+        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                  title = "Probability of Occurence %", position = "bottomleft",
                   labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
         addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                     highlight = highlightOptions(
@@ -763,8 +765,8 @@ server <- function(input, output, session) {
                    dfGeorgia$Latitude,
                    intensity = dfGeorgia$predictionProb,
                    max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                  title = "Probability of Occurence", position = "bottomleft",
+        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                  title = "Probability of Occurence %", position = "bottomleft",
                   labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
         addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                     highlight = highlightOptions(
@@ -787,8 +789,8 @@ server <- function(input, output, session) {
                    dfIowa$Latitude,
                    intensity = dfIowa$predictionProb,
                    max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                  title = "Probability of Occurence", position = "bottomleft",
+        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                  title = "Probability of Occurence %", position = "bottomleft",
                   labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
         addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                     highlight = highlightOptions(
@@ -811,8 +813,8 @@ server <- function(input, output, session) {
                    dfIdaho$Latitude,
                    intensity = dfIdaho$predictionProb,
                    max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                  title = "Probability of Occurence", position = "bottomleft",
+        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                  title = "Probability of Occurence %", position = "bottomleft",
                   labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
         addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                     highlight = highlightOptions(
@@ -835,8 +837,8 @@ server <- function(input, output, session) {
                    dfIllinois$Latitude,
                    intensity = dfIllinois$predictionProb,
                    max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                  title = "Probability of Occurence", position = "bottomleft",
+        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                  title = "Probability of Occurence %", position = "bottomleft",
                   labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
         addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                     highlight = highlightOptions(
@@ -859,8 +861,8 @@ server <- function(input, output, session) {
                    dfIndiana$Latitude,
                    intensity = dfIndiana$predictionProb,
                    max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                  title = "Probability of Occurence", position = "bottomleft",
+        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                  title = "Probability of Occurence %", position = "bottomleft",
                   labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
         addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                     highlight = highlightOptions(
@@ -883,8 +885,8 @@ server <- function(input, output, session) {
                    dfKansas$Latitude,
                    intensity = dfKansas$predictionProb,
                    max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                  title = "Probability of Occurence", position = "bottomleft",
+        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                  title = "Probability of Occurence %", position = "bottomleft",
                   labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
         addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                     highlight = highlightOptions(
@@ -907,8 +909,8 @@ server <- function(input, output, session) {
                    dfKentucky$Latitude,
                    intensity = dfKentucky$predictionProb,
                    max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                  title = "Probability of Occurence", position = "bottomleft",
+        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                  title = "Probability of Occurence %", position = "bottomleft",
                   labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
         addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                     highlight = highlightOptions(
@@ -931,8 +933,8 @@ server <- function(input, output, session) {
                    dfLouisiana$Latitude,
                    intensity = dfLouisiana$predictionProb,
                    max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                  title = "Probability of Occurence", position = "bottomleft",
+        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                  title = "Probability of Occurence %", position = "bottomleft",
                   labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
         addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                     highlight = highlightOptions(
@@ -955,8 +957,8 @@ server <- function(input, output, session) {
                    dfMaine$Latitude,
                    intensity = dfMaine$predictionProb,
                    max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-        addLegend(pal = pal_rev, values = dfMaine$predictionProb,
-                  title = "Probability of Occurence", position = "bottomleft", labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
+        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                  title = "Probability of Occurence %", position = "bottomleft", labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
         addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                     highlight = highlightOptions(
                       weight = 2,
@@ -978,8 +980,8 @@ server <- function(input, output, session) {
                    dfMaryland$Latitude,
                    intensity = dfMaryland$predictionProb,
                    max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-        addLegend(pal = pal_rev, values = dfMaryland$predictionProb,
-                  title = "Probability of Occurence", position = "bottomleft", labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
+        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                  title = "Probability of Occurence %", position = "bottomleft", labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
         addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                     highlight = highlightOptions(
                       weight = 2,
@@ -1001,8 +1003,8 @@ server <- function(input, output, session) {
                    dfMassachusetts$Latitude,
                    intensity = dfMassachusetts$predictionProb,
                    max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-        addLegend(pal = pal_rev, values = dfMassachusetts$predictionProb,
-                  title = "Probability of Occurence", position = "bottomleft", labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
+        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                  title = "Probability of Occurence %", position = "bottomleft", labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
         addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                     highlight = highlightOptions(
                       weight = 2,
@@ -1024,8 +1026,8 @@ server <- function(input, output, session) {
                    dfMichigan$Latitude,
                    intensity = dfMichigan$predictionProb,
                    max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-        addLegend(pal = pal_rev, values = dfMichigan$predictionProb,
-                  title = "Probability of Occurence", position = "bottomleft", labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
+        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                  title = "Probability of Occurence %", position = "bottomleft", labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
         addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                     highlight = highlightOptions(
                       weight = 2,
@@ -1047,8 +1049,8 @@ server <- function(input, output, session) {
                    dfMinnesota$Latitude,
                    intensity = dfMinnesota$predictionProb,
                    max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-        addLegend(pal = pal_rev, values = dfMinnesota$predictionProb,
-                  title = "Probability of Occurence", position = "bottomleft", labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
+        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                  title = "Probability of Occurence %", position = "bottomleft", labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
         addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                     highlight = highlightOptions(
                       weight = 2,
@@ -1070,8 +1072,8 @@ server <- function(input, output, session) {
                    dfMississippi$Latitude,
                    intensity = dfMississippi$predictionProb,
                    max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-        addLegend(pal = pal_rev, values = dfMississippi$predictionProb,
-                  title = "Probability of Occurence", position = "bottomleft", labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
+        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                  title = "Probability of Occurence %", position = "bottomleft", labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
         addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                     highlight = highlightOptions(
                       weight = 2,
@@ -1093,8 +1095,8 @@ server <- function(input, output, session) {
                    dfMissouri$Latitude,
                    intensity = dfMissouri$predictionProb,
                    max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-        addLegend(pal = pal_rev, values = dfMissouri$predictionProb,
-                  title = "Probability of Occurence", position = "bottomleft", labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
+        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                  title = "Probability of Occurence %", position = "bottomleft", labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
         addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                     highlight = highlightOptions(
                       weight = 2,
@@ -1116,8 +1118,8 @@ server <- function(input, output, session) {
                    dfMontana$Latitude,
                    intensity = dfMontana$predictionProb,
                    max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-        addLegend(pal = pal_rev, values = dfMontana$predictionProb,
-                  title = "Probability of Occurence", position = "bottomleft", labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
+        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                  title = "Probability of Occurence %", position = "bottomleft", labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
         addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                     highlight = highlightOptions(
                       weight = 2,
@@ -1139,8 +1141,8 @@ server <- function(input, output, session) {
                    dfNebraska$Latitude,
                    intensity = dfNebraska$predictionProb,
                    max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-        addLegend(pal = pal_rev, values = dfNebraska$predictionProb,
-                  title = "Probability of Occurence", position = "bottomleft", labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
+        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                  title = "Probability of Occurence %", position = "bottomleft", labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
         addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                     highlight = highlightOptions(
                       weight = 2,
@@ -1162,8 +1164,8 @@ server <- function(input, output, session) {
                    dfNevada$Latitude,
                    intensity = dfNevada$predictionProb,
                    max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-        addLegend(pal = pal_rev, values = dfNevada$predictionProb,
-                  title = "Probability of Occurence", position = "bottomleft", labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
+        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                  title = "Probability of Occurence %", position = "bottomleft", labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
         addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                     highlight = highlightOptions(
                       weight = 2,
@@ -1185,8 +1187,8 @@ server <- function(input, output, session) {
                    dfNewHampshire$Latitude,
                    intensity = dfNewHampshire$predictionProb,
                    max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-        addLegend(pal = pal_rev, values = dfNewHampshire$predictionProb,
-                  title = "Probability of Occurence", position = "bottomleft",
+        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                  title = "Probability of Occurence %", position = "bottomleft",
                   labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
         addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                     highlight = highlightOptions(
@@ -1209,8 +1211,8 @@ server <- function(input, output, session) {
                    dfNewJersey$Latitude,
                    intensity = dfNewJersey$predictionProb,
                    max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-        addLegend(pal = pal_rev, values = dfNewJersey$predictionProb,
-                  title = "Probability of Occurence", position = "bottomleft",
+        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                  title = "Probability of Occurence %", position = "bottomleft",
                   labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
         addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                     highlight = highlightOptions(
@@ -1233,8 +1235,8 @@ server <- function(input, output, session) {
                    dfNewMexico$Latitude,
                    intensity = dfNewMexico$predictionProb,
                    max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-        addLegend(pal = pal_rev, values = dfNewMexico$predictionProb,
-                  title = "Probability of Occurence", position = "bottomleft",
+        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                  title = "Probability of Occurence %", position = "bottomleft",
                   labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
         addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                     highlight = highlightOptions(
@@ -1258,8 +1260,8 @@ server <- function(input, output, session) {
                    dfNewYork$Latitude,
                    intensity = dfNewYork$predictionProb,
                    max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-        addLegend(pal = pal_rev, values = dfNewYork$predictionProb,
-                  title = "Probability of Occurence", position = "bottomleft",
+        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                  title = "Probability of Occurence %", position = "bottomleft",
                   labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
         addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                     highlight = highlightOptions(
@@ -1284,8 +1286,8 @@ server <- function(input, output, session) {
                    dfNorthCarolina$Latitude,
                    intensity = dfNorthCarolina$predictionProb,
                    max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-        addLegend(pal = pal_rev, values = dfNorthCarolina$predictionProb,
-                  title = "Probability of Occurence", position = "bottomleft",
+        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                  title = "Probability of Occurence %", position = "bottomleft",
                   labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
         addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                     highlight = highlightOptions(
@@ -1309,8 +1311,8 @@ server <- function(input, output, session) {
                    dfNorthDakota$Latitude,
                    intensity = dfNorthDakota$predictionProb,
                    max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-        addLegend(pal = pal_rev, values = dfNorthDakota$predictionProb,
-                  title = "Probability of Occurence", position = "bottomleft",
+        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                  title = "Probability of Occurence %", position = "bottomleft",
                   labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
         addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                     highlight = highlightOptions(
@@ -1334,8 +1336,8 @@ server <- function(input, output, session) {
                    dfOhio$Latitude,
                    intensity = dfOhio$predictionProb,
                    max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                  title = "Probability of Occurence", position = "bottomleft",
+        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                  title = "Probability of Occurence %", position = "bottomleft",
                   labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE))) %>%
         addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                     highlight = highlightOptions(
@@ -1359,8 +1361,8 @@ server <- function(input, output, session) {
                    dfOklahoma$Latitude,
                    intensity = dfOklahoma$predictionProb,
                    max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                  title = "Probability of Occurence", position = "bottomleft",
+        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                  title = "Probability of Occurence %", position = "bottomleft",
                   labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE))) %>%
         addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                     highlight = highlightOptions(
@@ -1384,7 +1386,7 @@ server <- function(input, output, session) {
                    dfOregon$Latitude,
                    intensity = dfOregon$predictionProb,
                    max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
+        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
                   title = "Probability of Occurence", position = "bottomright",
                   labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE))) %>%
         addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
@@ -1409,8 +1411,8 @@ server <- function(input, output, session) {
                    dfPenn$Latitude,
                    intensity = dfPenn$predictionProb,
                    max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                  title = "Probability of Occurence", position = "bottomleft",
+        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                  title = "Probability of Occurence %", position = "bottomleft",
                   labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE))) %>%
         addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                     highlight = highlightOptions(
@@ -1434,8 +1436,8 @@ server <- function(input, output, session) {
                    dfRI$Latitude,
                    intensity = dfRI$predictionProb,
                    max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                  title = "Probability of Occurence", position = "bottomleft",
+        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                  title = "Probability of Occurence %", position = "bottomleft",
                   labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE))) %>%
         addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                     highlight = highlightOptions(
@@ -1459,8 +1461,8 @@ server <- function(input, output, session) {
                    dfSC$Latitude,
                    intensity = dfSC$predictionProb,
                    max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                  title = "Probability of Occurence", position = "bottomleft",
+        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                  title = "Probability of Occurence %", position = "bottomleft",
                   labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE))) %>%
         addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                     highlight = highlightOptions(
@@ -1484,8 +1486,8 @@ server <- function(input, output, session) {
                    dfSD$Latitude,
                    intensity = dfSD$predictionProb,
                    max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                  title = "Probability of Occurence", position = "bottomleft",
+        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                  title = "Probability of Occurence %", position = "bottomleft",
                   labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE))) %>%
         addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                     highlight = highlightOptions(
@@ -1509,8 +1511,8 @@ server <- function(input, output, session) {
                    dfTN$Latitude,
                    intensity = dfTN$predictionProb,
                    max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                  title = "Probability of Occurence", position = "bottomleft",
+        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                  title = "Probability of Occurence %", position = "bottomleft",
                   labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE))) %>%
         addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                     highlight = highlightOptions(
@@ -1534,8 +1536,8 @@ server <- function(input, output, session) {
                    dfTexas$Latitude,
                    intensity = dfTexas$predictionProb,
                    max = 5, radius = 10, blur=0, gradient = palTemp) %>%
-        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                  title = "Probability of Occurence", position = "bottomleft",
+        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                  title = "Probability of Occurence %", position = "bottomleft",
                   labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE))) %>%
         addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                     highlight = highlightOptions(
@@ -1559,8 +1561,8 @@ server <- function(input, output, session) {
                    dfUtah$Latitude,
                    intensity = dfUtah$predictionProb,
                    max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                  title = "Probability of Occurence", position = "bottomleft",
+        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                  title = "Probability of Occurence %", position = "bottomleft",
                   labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE))) %>%
         addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                     highlight = highlightOptions(
@@ -1584,8 +1586,8 @@ server <- function(input, output, session) {
                    dfVermont$Latitude,
                    intensity = dfVermont$predictionProb,
                    max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                  title = "Probability of Occurence", position = "bottomleft",
+        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                  title = "Probability of Occurence %", position = "bottomleft",
                   labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE))) %>%
         addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                     highlight = highlightOptions(
@@ -1609,8 +1611,8 @@ server <- function(input, output, session) {
                    dfVirginia$Latitude,
                    intensity = dfVirginia$predictionProb,
                    max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                  title = "Probability of Occurence", position = "bottomleft",
+        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                  title = "Probability of Occurence %", position = "bottomleft",
                   labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE))) %>%
         addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                     highlight = highlightOptions(
@@ -1634,8 +1636,8 @@ server <- function(input, output, session) {
                    dfWashington$Latitude,
                    intensity = dfWashington$predictionProb,
                    max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                  title = "Probability of Occurence", position = "bottomleft",
+        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                  title = "Probability of Occurence %", position = "bottomleft",
                   labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE))) %>%
         addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                     highlight = highlightOptions(
@@ -1659,8 +1661,8 @@ server <- function(input, output, session) {
                    dfWisconsin$Latitude,
                    intensity = dfWisconsin$predictionProb,
                    max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                  title = "Probability of Occurence", position = "bottomleft",
+        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                  title = "Probability of Occurence %", position = "bottomleft",
                   labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE))) %>%
         addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                     highlight = highlightOptions(
@@ -1684,8 +1686,8 @@ server <- function(input, output, session) {
                    dfWV$Latitude,
                    intensity = dfWV$predictionProb,
                    max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                  title = "Probability of Occurence", position = "bottomleft",
+        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                  title = "Probability of Occurence %", position = "bottomleft",
                   labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE))) %>%
         addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                     highlight = highlightOptions(
@@ -1709,8 +1711,8 @@ server <- function(input, output, session) {
                    dfWyoming$Latitude,
                    intensity = dfWyoming$predictionProb,
                    max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                  title = "Probability of Occurence", position = "bottomleft",
+        addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                  title = "Probability of Occurence %", position = "bottomleft",
                   labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE))) %>%
         addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                     highlight = highlightOptions(
@@ -1748,8 +1750,8 @@ server <- function(input, output, session) {
                  dfAlabama$Latitude,
                  intensity = dfAlabama$predictionProb,
                  max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                title = "Probability of Occurence", position = "bottomleft",
+      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                title = "Probability of Occurence %", position = "bottomleft",
                 labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
       addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                   highlight = highlightOptions(
@@ -1772,8 +1774,8 @@ server <- function(input, output, session) {
                  dfArkansas$Latitude,
                  intensity = dfArkansas$predictionProb,
                  max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                title = "Probability of Occurence", position = "bottomleft",
+      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                title = "Probability of Occurence %", position = "bottomleft",
                 labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
       addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                   highlight = highlightOptions(
@@ -1796,8 +1798,8 @@ server <- function(input, output, session) {
                  dfArizona$Latitude,
                  intensity = dfArizona$predictionProb,
                  max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                title = "Probability of Occurence", position = "bottomleft",
+      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                title = "Probability of Occurence %", position = "bottomleft",
                 labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
       addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                   highlight = highlightOptions(
@@ -1820,8 +1822,8 @@ server <- function(input, output, session) {
                  dfCalifornia$Latitude,
                  intensity = dfCalifornia$predictionProb,
                  max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                title = "Probability of Occurence", position = "bottomleft",
+      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                title = "Probability of Occurence %", position = "bottomleft",
                 labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
       addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                   highlight = highlightOptions(
@@ -1844,8 +1846,8 @@ server <- function(input, output, session) {
                  dfColorado$Latitude,
                  intensity = dfColorado$predictionProb,
                  max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                title = "Probability of Occurence", position = "bottomleft",
+      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                title = "Probability of Occurence %", position = "bottomleft",
                 labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
       addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                   highlight = highlightOptions(
@@ -1868,8 +1870,8 @@ server <- function(input, output, session) {
                  dfConnecticut$Latitude,
                  intensity = dfConnecticut$predictionProb,
                  max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                title = "Probability of Occurence", position = "bottomleft",
+      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                title = "Probability of Occurence %", position = "bottomleft",
                 labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
       addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                   highlight = highlightOptions(
@@ -1892,8 +1894,8 @@ server <- function(input, output, session) {
                  dfDelaware$Latitude,
                  intensity = dfDelaware$predictionProb,
                  max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                title = "Probability of Occurence", position = "bottomleft",
+      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                title = "Probability of Occurence %", position = "bottomleft",
                 labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
       addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                   highlight = highlightOptions(
@@ -1916,8 +1918,8 @@ server <- function(input, output, session) {
                  dfFlorida$Latitude,
                  intensity = dfFlorida$predictionProb,
                  max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                title = "Probability of Occurence", position = "bottomleft",
+      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                title = "Probability of Occurence %", position = "bottomleft",
                 labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
       addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                   highlight = highlightOptions(
@@ -1940,8 +1942,8 @@ server <- function(input, output, session) {
                  dfGeorgia$Latitude,
                  intensity = dfGeorgia$predictionProb,
                  max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                title = "Probability of Occurence", position = "bottomleft",
+      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                title = "Probability of Occurence %", position = "bottomleft",
                 labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
       addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                   highlight = highlightOptions(
@@ -1964,8 +1966,8 @@ server <- function(input, output, session) {
                  dfIowa$Latitude,
                  intensity = dfIowa$predictionProb,
                  max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                title = "Probability of Occurence", position = "bottomleft",
+      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                title = "Probability of Occurence %", position = "bottomleft",
                 labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
       addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                   highlight = highlightOptions(
@@ -1988,8 +1990,8 @@ server <- function(input, output, session) {
                  dfIdaho$Latitude,
                  intensity = dfIdaho$predictionProb,
                  max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                title = "Probability of Occurence", position = "bottomleft",
+      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                title = "Probability of Occurence %", position = "bottomleft",
                 labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
       addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                   highlight = highlightOptions(
@@ -2012,8 +2014,8 @@ server <- function(input, output, session) {
                  dfIllinois$Latitude,
                  intensity = dfIllinois$predictionProb,
                  max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                title = "Probability of Occurence", position = "bottomleft",
+      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                title = "Probability of Occurence %", position = "bottomleft",
                 labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
       addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                   highlight = highlightOptions(
@@ -2036,8 +2038,8 @@ server <- function(input, output, session) {
                  dfIndiana$Latitude,
                  intensity = dfIndiana$predictionProb,
                  max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                title = "Probability of Occurence", position = "bottomleft",
+      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                title = "Probability of Occurence %", position = "bottomleft",
                 labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
       addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                   highlight = highlightOptions(
@@ -2060,8 +2062,8 @@ server <- function(input, output, session) {
                  dfKansas$Latitude,
                  intensity = dfKansas$predictionProb,
                  max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                title = "Probability of Occurence", position = "bottomleft",
+      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                title = "Probability of Occurence %", position = "bottomleft",
                 labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
       addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                   highlight = highlightOptions(
@@ -2084,8 +2086,8 @@ server <- function(input, output, session) {
                  dfKentucky$Latitude,
                  intensity = dfKentucky$predictionProb,
                  max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                title = "Probability of Occurence", position = "bottomleft",
+      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                title = "Probability of Occurence %", position = "bottomleft",
                 labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
       addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                   highlight = highlightOptions(
@@ -2108,8 +2110,8 @@ server <- function(input, output, session) {
                  dfLouisiana$Latitude,
                  intensity = dfLouisiana$predictionProb,
                  max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                title = "Probability of Occurence", position = "bottomleft",
+      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                title = "Probability of Occurence %", position = "bottomleft",
                 labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
       addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                   highlight = highlightOptions(
@@ -2132,8 +2134,8 @@ server <- function(input, output, session) {
                  dfMaine$Latitude,
                  intensity = dfMaine$predictionProb,
                  max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-      addLegend(pal = pal_rev, values = dfMaine$predictionProb,
-                title = "Probability of Occurence", position = "bottomleft", labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
+      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                title = "Probability of Occurence %", position = "bottomleft", labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
       addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                   highlight = highlightOptions(
                     weight = 2,
@@ -2155,8 +2157,8 @@ server <- function(input, output, session) {
                  dfMaryland$Latitude,
                  intensity = dfMaryland$predictionProb,
                  max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-      addLegend(pal = pal_rev, values = dfMaryland$predictionProb,
-                title = "Probability of Occurence", position = "bottomleft", labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
+      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                title = "Probability of Occurence %", position = "bottomleft", labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
       addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                   highlight = highlightOptions(
                     weight = 2,
@@ -2178,8 +2180,8 @@ server <- function(input, output, session) {
                  dfMassachusetts$Latitude,
                  intensity = dfMassachusetts$predictionProb,
                  max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-      addLegend(pal = pal_rev, values = dfMassachusetts$predictionProb,
-                title = "Probability of Occurence", position = "bottomleft", labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
+      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                title = "Probability of Occurence %", position = "bottomleft", labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
       addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                   highlight = highlightOptions(
                     weight = 2,
@@ -2201,8 +2203,8 @@ server <- function(input, output, session) {
                  dfMichigan$Latitude,
                  intensity = dfMichigan$predictionProb,
                  max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-      addLegend(pal = pal_rev, values = dfMichigan$predictionProb,
-                title = "Probability of Occurence", position = "bottomleft", labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
+      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                title = "Probability of Occurence %", position = "bottomleft", labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
       addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                   highlight = highlightOptions(
                     weight = 2,
@@ -2224,8 +2226,8 @@ server <- function(input, output, session) {
                  dfMinnesota$Latitude,
                  intensity = dfMinnesota$predictionProb,
                  max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-      addLegend(pal = pal_rev, values = dfMinnesota$predictionProb,
-                title = "Probability of Occurence", position = "bottomleft", labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
+      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                title = "Probability of Occurence %", position = "bottomleft", labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
       addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                   highlight = highlightOptions(
                     weight = 2,
@@ -2247,8 +2249,8 @@ server <- function(input, output, session) {
                  dfMississippi$Latitude,
                  intensity = dfMississippi$predictionProb,
                  max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-      addLegend(pal = pal_rev, values = dfMississippi$predictionProb,
-                title = "Probability of Occurence", position = "bottomleft", labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
+      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                title = "Probability of Occurence %", position = "bottomleft", labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
       addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                   highlight = highlightOptions(
                     weight = 2,
@@ -2270,8 +2272,8 @@ server <- function(input, output, session) {
                  dfMissouri$Latitude,
                  intensity = dfMissouri$predictionProb,
                  max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-      addLegend(pal = pal_rev, values = dfMissouri$predictionProb,
-                title = "Probability of Occurence", position = "bottomleft", labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
+      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                title = "Probability of Occurence %", position = "bottomleft", labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
       addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                   highlight = highlightOptions(
                     weight = 2,
@@ -2293,8 +2295,8 @@ server <- function(input, output, session) {
                  dfMontana$Latitude,
                  intensity = dfMontana$predictionProb,
                  max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-      addLegend(pal = pal_rev, values = dfMontana$predictionProb,
-                title = "Probability of Occurence", position = "bottomleft", labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
+      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                title = "Probability of Occurence %", position = "bottomleft", labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
       addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                   highlight = highlightOptions(
                     weight = 2,
@@ -2316,8 +2318,8 @@ server <- function(input, output, session) {
                  dfNebraska$Latitude,
                  intensity = dfNebraska$predictionProb,
                  max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-      addLegend(pal = pal_rev, values = dfNebraska$predictionProb,
-                title = "Probability of Occurence", position = "bottomleft", labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
+      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                title = "Probability of Occurence %", position = "bottomleft", labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
       addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                   highlight = highlightOptions(
                     weight = 2,
@@ -2339,8 +2341,8 @@ server <- function(input, output, session) {
                  dfNevada$Latitude,
                  intensity = dfNevada$predictionProb,
                  max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-      addLegend(pal = pal_rev, values = dfNevada$predictionProb,
-                title = "Probability of Occurence", position = "bottomleft", labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
+      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                title = "Probability of Occurence %", position = "bottomleft", labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
       addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                   highlight = highlightOptions(
                     weight = 2,
@@ -2362,8 +2364,8 @@ server <- function(input, output, session) {
                  dfNewHampshire$Latitude,
                  intensity = dfNewHampshire$predictionProb,
                  max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-      addLegend(pal = pal_rev, values = dfNewHampshire$predictionProb,
-                title = "Probability of Occurence", position = "bottomleft",
+      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                title = "Probability of Occurence %", position = "bottomleft",
                 labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
       addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                   highlight = highlightOptions(
@@ -2386,8 +2388,8 @@ server <- function(input, output, session) {
                  dfNewJersey$Latitude,
                  intensity = dfNewJersey$predictionProb,
                  max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-      addLegend(pal = pal_rev, values = dfNewJersey$predictionProb,
-                title = "Probability of Occurence", position = "bottomleft",
+      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                title = "Probability of Occurence %", position = "bottomleft",
                 labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
       addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                   highlight = highlightOptions(
@@ -2410,8 +2412,8 @@ server <- function(input, output, session) {
                  dfNewMexico$Latitude,
                  intensity = dfNewMexico$predictionProb,
                  max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-      addLegend(pal = pal_rev, values = dfNewMexico$predictionProb,
-                title = "Probability of Occurence", position = "bottomleft",
+      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                title = "Probability of Occurence %", position = "bottomleft",
                 labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
       addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                   highlight = highlightOptions(
@@ -2435,8 +2437,8 @@ server <- function(input, output, session) {
                  dfNewYork$Latitude,
                  intensity = dfNewYork$predictionProb,
                  max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-      addLegend(pal = pal_rev, values = dfNewYork$predictionProb,
-                title = "Probability of Occurence", position = "bottomleft",
+      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                title = "Probability of Occurence %", position = "bottomleft",
                 labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
       addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                   highlight = highlightOptions(
@@ -2461,8 +2463,8 @@ server <- function(input, output, session) {
                  dfNorthCarolina$Latitude,
                  intensity = dfNorthCarolina$predictionProb,
                  max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-      addLegend(pal = pal_rev, values = dfNorthCarolina$predictionProb,
-                title = "Probability of Occurence", position = "bottomleft",
+      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                title = "Probability of Occurence %", position = "bottomleft",
                 labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
       addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                   highlight = highlightOptions(
@@ -2486,8 +2488,8 @@ server <- function(input, output, session) {
                  dfNorthDakota$Latitude,
                  intensity = dfNorthDakota$predictionProb,
                  max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-      addLegend(pal = pal_rev, values = dfNorthDakota$predictionProb,
-                title = "Probability of Occurence", position = "bottomleft",
+      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                title = "Probability of Occurence %", position = "bottomleft",
                 labFormat = labelFormat(transform = function(x) sort(x, decreasing = T))) %>%
       addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                   highlight = highlightOptions(
@@ -2511,8 +2513,8 @@ server <- function(input, output, session) {
                  dfOhio$Latitude,
                  intensity = dfOhio$predictionProb,
                  max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                title = "Probability of Occurence", position = "bottomleft",
+      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                title = "Probability of Occurence %", position = "bottomleft",
                 labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE))) %>%
       addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                   highlight = highlightOptions(
@@ -2536,8 +2538,8 @@ server <- function(input, output, session) {
                  dfOklahoma$Latitude,
                  intensity = dfOklahoma$predictionProb,
                  max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                title = "Probability of Occurence", position = "bottomleft",
+      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                title = "Probability of Occurence %", position = "bottomleft",
                 labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE))) %>%
       addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                   highlight = highlightOptions(
@@ -2561,7 +2563,7 @@ server <- function(input, output, session) {
                  dfOregon$Latitude,
                  intensity = dfOregon$predictionProb,
                  max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
+      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
                 title = "Probability of Occurence", position = "bottomright",
                 labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE))) %>%
       addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
@@ -2586,8 +2588,8 @@ server <- function(input, output, session) {
                  dfPenn$Latitude,
                  intensity = dfPenn$predictionProb,
                  max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                title = "Probability of Occurence", position = "bottomleft",
+      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                title = "Probability of Occurence %", position = "bottomleft",
                 labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE))) %>%
       addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                   highlight = highlightOptions(
@@ -2611,8 +2613,8 @@ server <- function(input, output, session) {
                  dfRI$Latitude,
                  intensity = dfRI$predictionProb,
                  max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                title = "Probability of Occurence", position = "bottomleft",
+      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                title = "Probability of Occurence %", position = "bottomleft",
                 labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE))) %>%
       addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                   highlight = highlightOptions(
@@ -2636,8 +2638,8 @@ server <- function(input, output, session) {
                  dfSC$Latitude,
                  intensity = dfSC$predictionProb,
                  max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                title = "Probability of Occurence", position = "bottomleft",
+      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                title = "Probability of Occurence %", position = "bottomleft",
                 labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE))) %>%
       addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                   highlight = highlightOptions(
@@ -2661,8 +2663,8 @@ server <- function(input, output, session) {
                  dfSD$Latitude,
                  intensity = dfSD$predictionProb,
                  max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                title = "Probability of Occurence", position = "bottomleft",
+      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                title = "Probability of Occurence %", position = "bottomleft",
                 labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE))) %>%
       addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                   highlight = highlightOptions(
@@ -2686,8 +2688,8 @@ server <- function(input, output, session) {
                  dfTN$Latitude,
                  intensity = dfTN$predictionProb,
                  max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                title = "Probability of Occurence", position = "bottomleft",
+      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                title = "Probability of Occurence %", position = "bottomleft",
                 labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE))) %>%
       addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                   highlight = highlightOptions(
@@ -2711,8 +2713,8 @@ server <- function(input, output, session) {
                  dfTexas$Latitude,
                  intensity = dfTexas$predictionProb,
                  max = 5, radius = 10, blur=0, gradient = palTemp) %>%
-      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                title = "Probability of Occurence", position = "bottomleft",
+      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                title = "Probability of Occurence %", position = "bottomleft",
                 labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE))) %>%
       addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                   highlight = highlightOptions(
@@ -2736,8 +2738,8 @@ server <- function(input, output, session) {
                  dfUtah$Latitude,
                  intensity = dfUtah$predictionProb,
                  max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                title = "Probability of Occurence", position = "bottomleft",
+      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                title = "Probability of Occurence %", position = "bottomleft",
                 labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE))) %>%
       addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                   highlight = highlightOptions(
@@ -2761,8 +2763,8 @@ server <- function(input, output, session) {
                  dfVermont$Latitude,
                  intensity = dfVermont$predictionProb,
                  max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                title = "Probability of Occurence", position = "bottomleft",
+      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                title = "Probability of Occurence %", position = "bottomleft",
                 labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE))) %>%
       addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                   highlight = highlightOptions(
@@ -2786,8 +2788,8 @@ server <- function(input, output, session) {
                  dfVirginia$Latitude,
                  intensity = dfVirginia$predictionProb,
                  max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                title = "Probability of Occurence", position = "bottomleft",
+      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                title = "Probability of Occurence %", position = "bottomleft",
                 labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE))) %>%
       addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                   highlight = highlightOptions(
@@ -2811,8 +2813,8 @@ server <- function(input, output, session) {
                  dfWashington$Latitude,
                  intensity = dfWashington$predictionProb,
                  max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                title = "Probability of Occurence", position = "bottomleft",
+      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                title = "Probability of Occurence %", position = "bottomleft",
                 labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE))) %>%
       addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                   highlight = highlightOptions(
@@ -2836,8 +2838,8 @@ server <- function(input, output, session) {
                  dfWisconsin$Latitude,
                  intensity = dfWisconsin$predictionProb,
                  max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                title = "Probability of Occurence", position = "bottomleft",
+      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                title = "Probability of Occurence %", position = "bottomleft",
                 labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE))) %>%
       addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                   highlight = highlightOptions(
@@ -2861,8 +2863,8 @@ server <- function(input, output, session) {
                  dfWV$Latitude,
                  intensity = dfWV$predictionProb,
                  max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                title = "Probability of Occurence", position = "bottomleft",
+      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                title = "Probability of Occurence %", position = "bottomleft",
                 labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE))) %>%
       addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                   highlight = highlightOptions(
@@ -2886,8 +2888,8 @@ server <- function(input, output, session) {
                  dfWyoming$Latitude,
                  intensity = dfWyoming$predictionProb,
                  max = 2.5, radius = 12, blur=0, gradient = palTemp) %>%
-      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb,
-                title = "Probability of Occurence", position = "bottomleft",
+      addLegend(pal = pal_rev, values = plotList$dfMerged$predictionProb*100,
+                title = "Probability of Occurence %", position = "bottomleft",
                 labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE))) %>%
       addPolygons(data = states, fillOpacity = 0, weight = 1, color = "#8c8c8c",
                   highlight = highlightOptions(
