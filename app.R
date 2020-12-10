@@ -399,8 +399,14 @@ ui <- dashboardPage(title = "Tree of Heaven App",
                       
                       tags$head(tags$style(HTML(".box {margin-bottom: 0;}"))),
                       tags$head(tags$style(HTML("#downloadData {width: 100%; text-align: left; margin-left: 3px;}"))),
-                      tags$head( 
+                      tags$head(
                         tags$style(HTML(".main-sidebar { font-size: 18px; }")),
+                      ),
+                      tags$head(
+                        tags$style(HTML(".sidebar-menu li a { font-size: 18px !important; }"))
+                      ),
+                      tags$head(
+                        tags$style(HTML("#downloadData { font-size: 18px !important; }"))
                       ),
                       tabItemsUI,
                       custom,
@@ -474,17 +480,17 @@ server <- function(input, output, session) {
       bioDF <- extract(bioDat, spd)
       dfPred <- cbind.data.frame(coordinates(spd),bioDF)
       names(dfPred) <- c("Longitude", "Latitude", "Annual Mean Temp",
-                           "Mean Diurnal Range", "Isothermality", "Temp Seasonality",
-                           "Max Temp of Warmest Month", "Min Temp of Coldest Month",
-                           "Temp Annual Range", "Mean Temp of Wettest Quarter", "Mean Temp of Driest Quarter",
-                           "Mean Temp of Warmest Quarter", "Mean Temp of Coldest Quarter", "Annual Precipitation",
-                           "Precipitation of Wettest Month", "Precipitation of Driest Month",
-                           "Precipitation Seasonality", "Precipitation of Wettest Quarter",
-                           "Precipitation of Driest Quarter", "Precipitation of Warmest Quarter",
-                           "Precipitation of Coldest Quarter", "Altitude")
-
+                         "Mean Diurnal Range", "Isothermality", "Temp Seasonality",
+                         "Max Temp of Warmest Month", "Min Temp of Coldest Month",
+                         "Temp Annual Range", "Mean Temp of Wettest Quarter", "Mean Temp of Driest Quarter",
+                         "Mean Temp of Warmest Quarter", "Mean Temp of Coldest Quarter", "Annual Precipitation",
+                         "Precipitation of Wettest Month", "Precipitation of Driest Month",
+                         "Precipitation Seasonality", "Precipitation of Wettest Quarter",
+                         "Precipitation of Driest Quarter", "Precipitation of Warmest Quarter",
+                         "Precipitation of Coldest Quarter", "Altitude")
+      
       userInput <- c(input$`Annual Mean Temp`, input$`Mean Diurnal Range`, input$`Isothermality`, input$`Temp Seasonality`,input$`Max Temp of Warmest Month`, input$`Min Temp of Coldest Month`, input$`Temp Annual Range`, input$`Mean Temp of Wettest Quarter`, input$`Mean Temp of Driest Quarter`, input$`Mean Temp of Warmest Quarter`, input$`Mean Temp of Coldest Quarter`, input$`Annual Precipitation`,
-                          input$`Precipitation of Wettest Month`, input$`Precipitation of Driest Month`, input$`Precipitation Seasonality`, input$`Precipitation of Wettest Quarter`, input$`Precipitation of Driest Quarter`, input$`Precipitation of Warmest Quarter`, input$`Precipitation of Coldest Quarter`)
+                     input$`Precipitation of Wettest Month`, input$`Precipitation of Driest Month`, input$`Precipitation Seasonality`, input$`Precipitation of Wettest Quarter`, input$`Precipitation of Driest Quarter`, input$`Precipitation of Warmest Quarter`, input$`Precipitation of Coldest Quarter`)
       dfPred$`Annual Mean Temp` = dfPred$`Annual Mean Temp` + (userInput[1]*10) # data is using C * 10 for temps
       dfPred$`Mean Diurnal Range` = dfPred$`Mean Diurnal Range` + (userInput[2]*10)
       dfPred$`Isothermality` = dfPred$`Isothermality` + (userInput[3]*10)
