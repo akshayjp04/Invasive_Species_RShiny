@@ -145,7 +145,7 @@ library("rnaturalearthdata")
 world <- ne_countries(scale = "medium", returnclass = "sf")
 class(world)
 # Using Akshay's api key, can register own if you want to
-register_google(key="AIzaSyDPKTFEPBsrtlqMBI1nmFvfvskrNQ9Rlw8")
+register_google(key="Register Google Maps api key")
 ll_means <- sapply(texas_data[1:2], mean)
 # Each state was done one at a time. You can change the location and region for another state
 sq_map2 <- get_map(location = 'dallas',  maptype = "hybrid", source = "google", zoom = 7)
