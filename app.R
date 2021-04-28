@@ -22,7 +22,7 @@ library(sf)
 library(shinyjs)
 library(fresh)
 library(spData)
-
+setwd("~/CMDA_Capstone/RShinyApp")
 # Encoding in UTF-8 to load images properly
 options(encoding = "UTF-8")
 # Loading in 100k sample points and associated data
@@ -78,6 +78,160 @@ runProcess <- function(dfMergedAdjusted, modelCTBoost) { #dfMerged should be adj
 
 plotList <- runProcess(dfMerged, modelCTBoost) #Can call plotList$Heatmap to show heatmap map etc
 
+
+
+
+
+#############################-----------------Finding the differences------------------#############################
+
+# Comment this section out if you are trying to compile and run the app
+
+# Reading in data
+setwd("C:/Users/Akshay/Downloads")
+require(tidyverse)
+occdata <- readr::read_csv("CSVDownload_map.csv")
+# Splitting into states column
+occdata$State <- gsub("^.+?, |, United States", "", occdata$Location)
+# Filtering to only Virginia, NC
+library(dplyr)
+#occdata <- occdata %>% filter(State=="Virginia" | State=="North Carolina" | State="South Carolina")
+# Decide which columns to keep
+keep_cols = c("ObsDate", "Latitude", "Longitude", "State")
+occdata <- occdata[keep_cols]
+print(length(occdata$ObsDate))
+# Filtering out NAs and Blanks
+occdata <- occdata[!is.na(occdata$Latitude), ]
+
+
+#1 decimal place is 6 miles, if you round between two locations, there will be duplicates, take the higher probability of prevalence between them
+
+# 2 sd above the mean of probabilities, as long as the states are included that will be a good mark, don't want too many areas.
+
+threshold <- mean(plotList$dfMerged$predictionProb) + 2*sd(plotList$dfMerged$predictionProb)
+
+occdata$occurence <- 1
+newdf <- plotList$dfMerged
+newdf <- newdf[newdf$predictionProb > threshold,]
+newdf$Latitude <- round(newdf$Latitude, 1)
+newdf$Longitude <- round(newdf$Longitude, 1)
+occdata$Latitude <- round(occdata$Latitude, 1)
+occdata$Longitude <- round(occdata$Longitude, 1)
+
+
+library(dplyr)
+newdf <- newdf %>% 
+  group_by(Longitude, Latitude) %>% 
+  filter(predictionProb==max(predictionProb))
+
+
+occdata$comb <- paste(occdata$Longitude, occdata$Latitude, sep="")
+newdf$comb <- paste(newdf$Longitude, newdf$Latitude, sep="")
+
+
+diff_df <- newdf[!(newdf$comb %in% occdata$comb),]
+
+texas_data <- na.omit(texas_data)
+texas_data <- diff_df[diff_df$State=="Virginia",]
+unique(diff_df$State)
+library(ggplot2)
+library(maps)
+library(ggmap)
+
+library("ggplot2")
+theme_set(theme_bw())
+library("sf")
+library("rnaturalearth")
+library("rnaturalearthdata")
+world <- ne_countries(scale = "medium", returnclass = "sf")
+class(world)
+# Using Akshay's api key, can register own if you want to
+register_google(key="AIzaSyDPKTFEPBsrtlqMBI1nmFvfvskrNQ9Rlw8")
+ll_means <- sapply(texas_data[1:2], mean)
+# Each state was done one at a time. You can change the location and region for another state
+sq_map2 <- get_map(location = 'dallas',  maptype = "hybrid", source = "google", zoom = 7)
+counties <- map_data("county")
+tx_county <- subset(counties, region == 'texas')
+colnames(texas_data) <- c("lon", "lat", "Annual Mean Temp",
+                          "Mean Diurnal Range", "Isothermality", "Temp Seasonality",
+                          "Max Temp of Warmest Month", "Min Temp of Coldest Month",
+                          "Temp Annual Range", "Mean Temp of Wettest Quarter", "Mean Temp of Driest Quarter",
+                          "Mean Temp of Warmest Quarter", "Mean Temp of Coldest Quarter", "Annual Precipitation",
+                          "Precipitation of Wettest Month", "Precipitation of Driest Month",
+                          "Precipitation Seasonality", "Precipitation of Wettest Quarter",
+                          "Precipitation of Driest Quarter", "Precipitation of Warmest Quarter",
+                          "Precipitation of Coldest Quarter", "Altitude", "State", "predictionProb", "predictionClass", "comb")
+ggmap(sq_map2) + 
+  geom_point(data = texas_data[,1:2], size = 1, aes(lon, lat, color=texas_data$predictionProb)) +
+  geom_polygon(data = tx_county, aes(x=long, y=lat, group = group), fill = NA, color="black")+
+  scale_color_gradient(low="yellow", high="red", name='Probability of Occurence')
+  
+
+
+
+#########################--------------------------Building App----------------####################################
+
+# Reading in data
+setwd("C:/Users/Akshay/Downloads")
+require(tidyverse)
+occdata <- readr::read_csv("CSVDownload_map.csv")
+# Splitting into states column
+occdata$State <- gsub("^.+?, |, United States", "", occdata$Location)
+# Filtering to only Virginia, NC
+library(dplyr)
+#occdata <- occdata %>% filter(State=="Virginia" | State=="North Carolina" | State="South Carolina")
+# Decide which columns to keep
+keep_cols = c("ObsDate", "Latitude", "Longitude", "State")
+occdata <- occdata[keep_cols]
+print(length(occdata$ObsDate))
+# Filtering out NAs and Blanks
+occdata <- occdata[!is.na(occdata$Latitude), ]
+texas_data_occ <- occdata[occdata$State=="Virginia",]
+ll_means <- sapply(texas_data_occ[2:3], mean)
+sq_map2 <- get_map(location = 'charlottesville',  maptype = "hybrid", source = "google", zoom = 7)
+#> Map from URL : http://maps.googleapis.com/maps/api/staticmap?center=34.753117,-119.751324&zoom=15&size=640x640&scale=2&maptype=satellite&language=en-EN&sensor=false
+texas_lon_occ <- texas_data_occ[,3:2]
+colnames(texas_lon_occ) <- c('lon','lat')
+
+ggmap(sq_map2) + 
+  geom_point(data = texas_lon_occ, color = "red", size = 1) +
+  geom_polygon(data = tx_county, aes(x=long, y=lat, group = group), fill = NA, color="black")
+
+
+USA <- map_data('state')
+g <- ggplot(USA, aes(long, lat)) + 
+  geom_polygon(aes(group=group),fill="white",colour="black",size=0.5) +
+  coord_equal() + 
+  scale_x_continuous(expand=c(0,0)) + 
+  scale_y_continuous(expand=c(0,0)) +
+  labs(x='Longitude', y='Latitude') +
+  theme_bw()
+g <- g + 
+  geom_point(data=diff_df,aes(Longitude, Latitude, color=diff_df$predictionProb)) +
+  theme(
+    legend.position = 'bottom',
+    legend.key.size = unit(1, "cm")
+  ) + ggtitle("Tree of Heaven Model with XGBoost") + theme(plot.title = element_text(hjust = 0.5))
+g
+
+
+USA <- map_data('usa')
+g1 <- ggplot(USA, aes(long, lat)) + 
+  geom_polygon(aes(group=group),fill="white",colour="black",size=0.5) +
+  coord_equal() + 
+  scale_x_continuous(expand=c(0,0)) + 
+  scale_y_continuous(expand=c(0,0)) +
+  labs(x='Longitude', y='Latitude') +
+  theme_bw()
+g1 <- g1 + 
+  geom_point(data=occdata,aes(Longitude, Latitude, color=as.factor(occdata$occurence))) +
+  theme(
+    legend.position = 'bottom',
+    legend.key.size = unit(1, "cm")
+  ) + ggtitle("Tree of Heaven Actual Points") + theme(plot.title = element_text(hjust = 0.5)) + labs(color="Occurence")
+g1
+
+###########################################################################
+setwd("~/CMDA_Capstone/RShinyApp")
 usa <- geojson_read(
   "http://eric.clst.org/assets/wiki/uploads/Stuff/gz_2010_us_040_00_500k.json",
   what = "sp")
